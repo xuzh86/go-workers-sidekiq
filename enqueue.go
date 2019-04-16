@@ -19,7 +19,7 @@ type EnqueueData struct {
 	Wrapped    string      `json:"wrapped"`
 	Args       interface{} `json:"args"`
 	Jid        string      `json:"jid"`
-	ProviderJobId  string  `json:"provider_job_id"`
+	//ProviderJobId  string  `json:"provider_job_id"`
 	CreatedAt  float64     `json:"created_at"`
 	EnqueuedAt float64     `json:"enqueued_at"`
 	EnqueueOptions
