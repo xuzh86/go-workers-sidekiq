@@ -20,6 +20,7 @@ type EnqueueData struct {
 	Args       interface{} `json:"args"`
 	Jid        string      `json:"jid"`
 	ProviderJobId  string  `json:"provider_job_id"`
+	CreatedAt  float64     `json:"created_at"`
 	EnqueuedAt float64     `json:"enqueued_at"`
 	EnqueueOptions
 }
@@ -59,14 +60,28 @@ func EnqueueAt(queue, class string, wrapped string, at time.Time, args interface
 
 func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, opts EnqueueOptions) (string, error) {
 	now := nowToSecondsWithNanoPrecision()
+
+	//{"class":"ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper","wrapped":"UsappyUserInfoSyncToLocalJob","queue":"app_api_queue",
+	//
+	//
+	//	"args":[{"job_class":"UsappyUserInfoSyncToLocalJob","job_id":"608256b2-08dd-4f02-8fd7-682c33915f04",
+	//	"provider_job_id":null,"queue_name":"app_api_queue","priority":null,"arguments":[],"locale":"ja"}],
+	//"retry":true,"jid":"702f891e99d768f517ed2dbb",
+	//"created_at":1555412831.6633222,
+	//"enqueued_at":1555412831.7229729}
+
+	JobId := generateProviderJobId()
+
+	JsonArgs := map[string]interface{}{ "job_class": wrapped, "job_id": JobId, "provider_job_id": nil, "queue_name": queue, "priority": nil, "arguments": args, "locale": "ja"  }
+
 	data := EnqueueData{
 		Queue:          queue,
 		Class:          class,
 		Wrapped:        wrapped,
-		Args:           args,
+		Args:           JsonArgs,
 		Jid:            generateJid(),
-		ProviderJobId:  generateProviderJobId(),
 		EnqueuedAt:     now,
+		CreatedAt:      now,
 		EnqueueOptions: opts,
 	}
 
