@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"time"
+	"github.com/satori/go.uuid"
 )
 
 const (
@@ -15,8 +16,10 @@ const (
 type EnqueueData struct {
 	Queue      string      `json:"queue,omitempty"`
 	Class      string      `json:"class"`
+	Wrapped    string      `json:"wrapped"`
 	Args       interface{} `json:"args"`
 	Jid        string      `json:"jid"`
+	ProviderJobId  string  `json:"provider_job_id"`
 	EnqueuedAt float64     `json:"enqueued_at"`
 	EnqueueOptions
 }
@@ -37,25 +40,32 @@ func generateJid() string {
 	return fmt.Sprintf("%x", b)
 }
 
-func Enqueue(queue, class string, args interface{}) (string, error) {
-	return EnqueueWithOptions(queue, class, args, EnqueueOptions{At: nowToSecondsWithNanoPrecision()})
+func generateProviderJobId() string {
+	u := uuid.Must(uuid.NewV4())
+	return fmt.Sprintf("%s", u)
 }
 
-func EnqueueIn(queue, class string, in float64, args interface{}) (string, error) {
-	return EnqueueWithOptions(queue, class, args, EnqueueOptions{At: nowToSecondsWithNanoPrecision() + in})
+func Enqueue(queue, class string, wrapped string, args interface{}) (string, error) {
+	return EnqueueWithOptions(queue, class, wrapped, args, EnqueueOptions{At: nowToSecondsWithNanoPrecision()})
 }
 
-func EnqueueAt(queue, class string, at time.Time, args interface{}) (string, error) {
-	return EnqueueWithOptions(queue, class, args, EnqueueOptions{At: timeToSecondsWithNanoPrecision(at)})
+func EnqueueIn(queue, class string, wrapped string, in float64, args interface{}) (string, error) {
+	return EnqueueWithOptions(queue, class, wrapped, args, EnqueueOptions{At: nowToSecondsWithNanoPrecision() + in})
 }
 
-func EnqueueWithOptions(queue, class string, args interface{}, opts EnqueueOptions) (string, error) {
+func EnqueueAt(queue, class string, wrapped string, at time.Time, args interface{}) (string, error) {
+	return EnqueueWithOptions(queue, class, wrapped, args, EnqueueOptions{At: timeToSecondsWithNanoPrecision(at)})
+}
+
+func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, opts EnqueueOptions) (string, error) {
 	now := nowToSecondsWithNanoPrecision()
 	data := EnqueueData{
 		Queue:          queue,
 		Class:          class,
+		Wrapped:        wrapped,
 		Args:           args,
 		Jid:            generateJid(),
+		ProviderJobId:  generateProviderJobId(),
 		EnqueuedAt:     now,
 		EnqueueOptions: opts,
 	}
