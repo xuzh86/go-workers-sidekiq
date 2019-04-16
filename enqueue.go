@@ -72,7 +72,7 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 
 	JobId := generateProviderJobId()
 
-	JsonArgs := map[string]interface{}{ "job_class": wrapped, "job_id": JobId, "provider_job_id": nil, "queue_name": queue, "priority": nil, "arguments": args, "locale": "ja"  }
+	JsonArgs := []interface{}{ map[string]interface{}{ "job_class": wrapped, "job_id": JobId, "provider_job_id": nil, "queue_name": queue, "priority": nil, "arguments": args, "locale": "ja"  } }
 
 	data := EnqueueData{
 		Queue:          queue,
