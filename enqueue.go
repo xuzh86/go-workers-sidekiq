@@ -71,6 +71,7 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 	//"enqueued_at":1555412831.7229729}
 
 	JobId := generateProviderJobId()
+	Jid := generateJid()
 
 	JsonArgs := []interface{}{ map[string]interface{}{ "job_class": wrapped, "job_id": JobId, "provider_job_id": nil, "queue_name": queue, "priority": nil, "arguments": args, "locale": "ja"  } }
 
@@ -79,7 +80,7 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 		Class:          class,
 		Wrapped:        wrapped,
 		Args:           JsonArgs,
-		Jid:            generateJid(),
+		Jid:            Jid,
 		EnqueuedAt:     now,
 		CreatedAt:      now,
 		EnqueueOptions: opts,
@@ -104,6 +105,17 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 	}
 	queue = Config.Namespace + "queue:" + queue
 	_, err = conn.Do("rpush", queue, bytes)
+	if err != nil {
+		return "", err
+	}
+
+	StatusData := map[string]interface{}{ "worker": wrapped, "jid": Jid, "status": "queued", "update_time": now  }
+	StatusDataBytes, err := json.Marshal(StatusData)
+	if err != nil {
+		return "", err
+	}
+	queue = Config.Namespace + "sidekiq:status:" + Jid
+	_, err = conn.Do("rpush", queue, StatusDataBytes)
 	if err != nil {
 		return "", err
 	}
