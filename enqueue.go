@@ -7,6 +7,7 @@ import (
 	"io"
 	"time"
 	"github.com/satori/go.uuid"
+	rejson "github.com/nitishm/go-rejson"
 )
 
 const (
@@ -110,12 +111,12 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 	}
 
 	StatusData := map[string]interface{}{ "worker": wrapped, "jid": Jid, "status": "queued", "update_time": now  }
-	//StatusDataBytes, err := json.Marshal(StatusData)
-	//if err != nil {
-	//	return "", err
-	//}
+	StatusDataBytes, err := json.Marshal(StatusData)
+	if err != nil {
+		return "", err
+	}
 	queue = Config.Namespace + "sidekiq:status:" + Jid
-	_, err = conn.Do("rpush", queue, StatusData)
+	_, err = rejson.JSONSet(conn, queue, ".", StatusDataBytes, false, false)
 	if err != nil {
 		return "", err
 	}
