@@ -29,6 +29,7 @@ type EnqueueOptions struct {
 	RetryCount int     `json:"retry_count,omitempty"`
 	Retry      bool    `json:"retry,omitempty"`
 	At         float64 `json:"at,omitempty"`
+	Expire     int     `json:"expire,omitempty"`
 }
 
 func generateJid() string {
@@ -127,6 +128,13 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 	queue = Config.Namespace + "sidekiq:status:" + Jid
 	for key, value := range StatusData{
 		_, err = conn.Do("HSET", queue, key, value)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if opts.Expire != 0{
+		_, err = conn.Do("EXPIRE", queue, opts.Expire)
 		if err != nil {
 			return "", err
 		}
