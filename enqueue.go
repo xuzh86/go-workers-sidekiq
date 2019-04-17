@@ -110,15 +110,17 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 		return "", err
 	}
 
-	StatusData := map[string]interface{}{ "worker": wrapped, "jid": Jid, "status": "queued", "update_time": now  }
-	StatusDataBytes, err := json.Marshal(StatusData)
+	StatusData := map[string]interface{}{ "worker": wrapped, "jid": Jid, "status": "queued", "update_time": fmt.Sprintf("%f", now)  }
+	//StatusDataBytes, err := json.Marshal(StatusData)
 	if err != nil {
 		return "", err
 	}
 	queue = Config.Namespace + "sidekiq:status:" + Jid
-	_, err = rejson.JSONSet(conn, queue, ".", StatusDataBytes, false, false)
-	if err != nil {
-		return "", err
+	for key, value := range StatusData{
+		_, err = conn.Do("HSET", queue, key, value)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return data.Jid, nil
