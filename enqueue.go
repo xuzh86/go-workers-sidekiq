@@ -7,7 +7,6 @@ import (
 	"io"
 	"time"
 	"github.com/satori/go.uuid"
-	rejson "github.com/nitishm/go-rejson"
 )
 
 const (
@@ -110,7 +109,17 @@ func EnqueueWithOptions(queue, class string, wrapped string, args interface{}, o
 		return "", err
 	}
 
-	StatusData := map[string]interface{}{ "worker": wrapped, "jid": Jid, "status": "queued", "update_time": fmt.Sprintf("%f", now)  }
+	ArgsBytes, err := json.Marshal(args)
+	if err != nil {
+		return "", err
+	}
+	StatusData := map[string]interface{}{
+		"worker": wrapped,
+		"jid": Jid,
+		"status": "queued",
+		"update_time": fmt.Sprintf("%f", now),
+		"args": ArgsBytes,
+	}
 	//StatusDataBytes, err := json.Marshal(StatusData)
 	if err != nil {
 		return "", err
